@@ -23,7 +23,7 @@ npm install
 ### Lancer l'API :
 
 ```
-npm run run:dev
+nodemon server.js
 ```
 
 ### Accéder à l'API :
@@ -69,7 +69,7 @@ npm install
 ### Run the API :
 
 ```
-npm run:dev
+nodemon server.js
 ```
 
 ### Access to the PAI :

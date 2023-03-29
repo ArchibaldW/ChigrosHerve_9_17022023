@@ -5,7 +5,8 @@ import LoadingPage from "./LoadingPage.js"
 import Actions from './Actions.js'
 
 const row = (bill) => {
-  return (`
+  // OTHER BUG HUNT - NO UNDEFINED BILL
+  return bill.status !== undefined ? (`
     <tr>
       <td>${bill.type}</td>
       <td>${bill.name}</td>
@@ -16,11 +17,17 @@ const row = (bill) => {
         ${Actions(bill.fileUrl)}
       </td>
     </tr>
-    `)
+    `) : ''
   }
 
+// BUG HUNT - BILLS SORT BY DATE
 const rows = (data) => {
-  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+  if(data && data.length){
+    data.sort((a, b) => ((a.date < b.date) ? 1 : -1))
+    return data.map(bill => row(bill)).join("")
+  } else {
+    return ""
+  }
 }
 
 export default ({ data: bills, loading, error }) => {
