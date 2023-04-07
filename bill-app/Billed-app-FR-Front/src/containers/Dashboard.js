@@ -182,7 +182,6 @@ export default class {
     })
 
     return bills
-
   }
 
   getBillsAllUsers = () => {
@@ -217,7 +216,6 @@ export default class {
           selector: bill.id
         })
         .then(bill => bill)
-        .catch(console.log)
     }
   }
 }

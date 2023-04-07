@@ -128,111 +128,113 @@ describe("Given I am connected as an employee", () => {
       expect(document.body).toHaveTextContent('Mes notes de frais')
       expect(tableBody.children).toHaveLength(4)
     })
-  })
 
-  test("Then a bad date should return the unformatted date, and log the error", async () => {
+    test("Then a bad date should return the unformatted date, and log the error", async () => {
 
-    jest.spyOn(mockStore, "bills")
-    Object.defineProperty(
+      jest.spyOn(mockStore, "bills")
+      Object.defineProperty(
+          window,
+          'localStorage',
+          { value: localStorageMock }
+      )
+  
+      const consoleSpy = jest.spyOn(console, 'log')
+  
+      // Mock the store with a bill containing a bad date
+      const billWithBadDateFormat = (await mockStore.bills().list())[0]
+      billWithBadDateFormat.date = "2002-02-02-bad-date-format"
+      const bill = { list: () =>  Promise.resolve([billWithBadDateFormat]) }
+  
+      // It will be call a second time, while handling the error
+      mockStore.bills
+        .mockImplementationOnce(() => bill)
+        .mockImplementationOnce(() => bill)
+  
+      // Setup the router
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      router()
+  
+      // Go to employee dashboard
+      window.onNavigate(ROUTES_PATH.Bills)
+      await new Promise(process.nextTick)
+  
+      expect(document.body).toHaveTextContent('2002-02-02-bad-date-format')
+      expect(console.log).toHaveBeenCalledWith(
+        expect.any(RangeError),
+        'for',
+        (await bill.list())[0],
+      )
+  
+      // Clean the spy
+      consoleSpy.mockRestore()
+    })
+  
+    test("Then bills are fetched from the API and it fails with a 404 message error", async () => {
+  
+      jest.spyOn(mockStore, "bills")
+      Object.defineProperty(
         window,
-        'localStorage',
-        { value: localStorageMock }
-    )
-
-    const consoleSpy = jest.spyOn(console, 'log')
-
-    // Mock the store with a bill containing a bad date
-    const billWithBadDateFormat = (await mockStore.bills().list())[0]
-    billWithBadDateFormat.date = "2002-02-02-bad-date-format"
-    const bill = { list: () =>  Promise.resolve([billWithBadDateFormat]) }
-
-    // It will be call a second time, while handling the error
-    mockStore.bills
-      .mockImplementationOnce(() => bill)
-      .mockImplementationOnce(() => bill)
-
-    // Setup the router
-    const root = document.createElement("div")
-    root.setAttribute("id", "root")
-    document.body.append(root)
-    router()
-
-    // Go to employee dashboard
-    window.onNavigate(ROUTES_PATH.Bills)
-    await new Promise(process.nextTick)
-
-    expect(document.body).toHaveTextContent('2002-02-02-bad-date-format')
-    expect(console.log).toHaveBeenCalledWith(
-      expect.any(RangeError),
-      'for',
-      (await bill.list())[0],
-    )
-
-    // Clean the spy
-    consoleSpy.mockRestore()
-  })
-
-  test("Then bills are fetched from the API and it fails with a 404 message error", async () => {
-
-    jest.spyOn(mockStore, "bills")
-    Object.defineProperty(
-      window,
-      'localStorage', {
-        value: localStorageMock
-      }
-    )
-
-    mockStore.bills.mockImplementationOnce(() => {
-      return {
-        list: () => {
-          return Promise.reject(new Error("Erreur 404"))
+        'localStorage', {
+          value: localStorageMock
         }
-      }
-    })
-
-    // Setup the router.
-    const root = document.createElement("div")
-    root.setAttribute("id", "root")
-    document.body.append(root)
-    router()
-
-    // Go to employee dashboard.
-    window.onNavigate(ROUTES_PATH.Bills)
-
-    await new Promise(process.nextTick)
-    const message = await screen.findByText(/Erreur 404/)
-    expect(message).toBeTruthy()
-  })
-
-  test("Then bills are fetched from the API and it fails with a 500 message error", async () => {
-
-    jest.spyOn(mockStore, "bills")
-    Object.defineProperty(
-      window,
-      'localStorage', {
-        value: localStorageMock
-      }
-    )
-
-    mockStore.bills.mockImplementationOnce(() => {
-      return {
-        list: () => {
-          return Promise.reject(new Error("Erreur 500"))
+      )
+  
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error("Erreur 404"))
+          }
         }
-      }
+      })
+  
+      // Setup the router.
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      router()
+  
+      // Go to employee dashboard.
+      window.onNavigate(ROUTES_PATH.Bills)
+  
+      await new Promise(process.nextTick)
+      const message = await screen.findByText(/Erreur 404/)
+      expect(message).toBeTruthy()
     })
-
-    // Setup the router.
-    const root = document.createElement("div")
-    root.setAttribute("id", "root")
-    document.body.append(root)
-    router()
-
-    // Go to employee dashboard.
-    window.onNavigate(ROUTES_PATH.Bills)
-
-    await new Promise(process.nextTick)
-    const message = await screen.findByText(/Erreur 500/)
-    expect(message).toBeTruthy()
+  
+    test("Then bills are fetched from the API and it fails with a 500 message error", async () => {
+  
+      jest.spyOn(mockStore, "bills")
+      Object.defineProperty(
+        window,
+        'localStorage', {
+          value: localStorageMock
+        }
+      )
+  
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error("Erreur 500"))
+          }
+        }
+      })
+  
+      // Setup the router.
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      router()
+  
+      // Go to employee dashboard.
+      window.onNavigate(ROUTES_PATH.Bills)
+  
+      await new Promise(process.nextTick)
+      const message = await screen.findByText(/Erreur 500/)
+      expect(message).toBeTruthy()
+    })
   })
+
+  
 })
